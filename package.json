@@ -1,0 +1,11 @@
+{
+  "name": "@gm5/controller",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "控制器基类。",
+  "main": "index.js",
+  "author": "yutent",
+  "keywords": ["fivejs", "controller", "http"],
+  "repository": "https://github.com/bytedo/gmf.controller.git",
+  "license": "MIT"
+}

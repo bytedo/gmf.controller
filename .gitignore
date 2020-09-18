@@ -7,3 +7,6 @@
 ._*
 .idea
 .vscode
+
+
+node_modules/

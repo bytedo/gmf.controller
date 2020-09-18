@@ -6,8 +6,7 @@
  */
 
 import Smarty from 'smartyx' //模板引擎
-
-import { sign, verify } from '../module/jwt.js'
+import jwt from '@gm5/jwt'
 
 const smarty = new Smarty()
 
@@ -18,9 +17,12 @@ export default class Controller {
     this.request = req
     this.response = res
 
+    jwt.expires = ctx.get('session').ttl
+    jwt.secret = ctx.get('jwt')
+
     this.jwt = {
-      sign: sign.bind(this),
-      result: verify.call(this)
+      sign: jwt.sign,
+      result: jwt.verify(req.header('authorized'))
     }
 
     smarty.config('path', this.ctx.get('VIEWS'))

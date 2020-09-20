@@ -5,14 +5,11 @@
  *
  */
 
-import Smarty from 'smartyx' //模板引擎
 import jwt from '@gm5/jwt'
-
-const smarty = new Smarty()
 
 export default class Controller {
   constructor({ ctx, req, res }) {
-    this.ctx = ctx
+    this.context = ctx
     this.name = req.app
     this.request = req
     this.response = res
@@ -25,39 +22,39 @@ export default class Controller {
       result: jwt.verify(req.header('authorized'))
     }
 
-    smarty.config('path', this.ctx.get('VIEWS'))
-    smarty.config('ext', this.ctx.get('temp_ext'))
-    smarty.config('cache', !!this.ctx.get('temp_cache'))
+    // smarty.config('path', this.ctx.get('VIEWS'))
+    // smarty.config('ext', this.ctx.get('temp_ext'))
+    // smarty.config('cache', !!this.ctx.get('temp_cache'))
 
-    this.cookie = this.ctx.ins('cookie')
-    this.session = this.ctx.ins('session')
+    this.cookie = ctx.ins('cookie')
+    // this.session = this.ctx.ins('session')
   }
 
   //定义一个变量，类似于smarty，把该
-  assign(key, val) {
-    key += ''
-    if (!key) {
-      return
-    }
+  // assign(key, val) {
+  //   key += ''
+  //   if (!key) {
+  //     return
+  //   }
 
-    if (val === undefined || val === null) {
-      val = ''
-    }
+  //   if (val === undefined || val === null) {
+  //     val = ''
+  //   }
 
-    smarty.assign(key, val)
-  }
+  //   smarty.assign(key, val)
+  // }
 
   //模板渲染, 参数是模板名, 可不带后缀, 默认是 .tpl
-  render(file, noParse = false) {
-    smarty
-      .render(file, noParse)
-      .then(html => {
-        this.response.render(html)
-      })
-      .catch(err => {
-        this.response.error(err)
-      })
-  }
+  // render(file, noParse = false) {
+  //   smarty
+  //     .render(file, noParse)
+  //     .then(html => {
+  //       this.response.render(html)
+  //     })
+  //     .catch(err => {
+  //       this.response.error(err)
+  //     })
+  // }
 
   // RESFULL-API规范的纯API返回
   send(status = 200, msg = 'success', data = {}) {
@@ -70,11 +67,13 @@ export default class Controller {
 
   //针对框架定制的debug信息输出
   xdebug(err) {
-    let msg = err
+    var msg = err
     if (this.ctx.get('debug')) {
-      msg = err.stack || err
+      msg = err.message || err
     }
 
-    this.response.append('X-debug', msg + '')
+    msg = encodeURIComponent(msg + '')
+
+    this.response.append('X-debug', msg)
   }
 }

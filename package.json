@@ -4,6 +4,9 @@
   "type": "module",
   "description": "控制器基类。",
   "main": "index.js",
+  "dependencies": {
+    "@gm5/jwt": "^1.0.0"
+  },
   "author": "yutent",
   "keywords": ["fivejs", "controller", "http"],
   "repository": "https://github.com/bytedo/gmf.controller.git",

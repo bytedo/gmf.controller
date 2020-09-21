@@ -17,16 +17,12 @@ export default class Controller {
     jwt.expires = ctx.get('session').ttl
     jwt.secret = ctx.get('jwt')
 
-    this.jwt = {
-      sign: jwt.sign,
-      result: jwt.verify(req.header('authorized'))
-    }
+    this.jwt = { sign: jwt.sign }
 
     // smarty.config('path', this.ctx.get('VIEWS'))
     // smarty.config('ext', this.ctx.get('temp_ext'))
     // smarty.config('cache', !!this.ctx.get('temp_cache'))
 
-    this.cookie = ctx.ins('cookie')
     // this.session = this.ctx.ins('session')
   }
 
@@ -55,6 +51,29 @@ export default class Controller {
   //       this.response.error(err)
   //     })
   // }
+
+  checkAuth() {
+    this.jwt.result = jwt.verify(this.request.header('authorized'))
+  }
+
+  // cookie读写
+  cookie(key, val, opt) {
+    if (arguments.length < 2) {
+      return this.request.cookie(key)
+    }
+
+    if (!opt) {
+      opt = {}
+    }
+    opt.domain = opt.domain || this.context.get('domain')
+
+    if (val === null || val === undefined) {
+      delete opt.expires
+      opt.maxAge = -1
+    }
+
+    this.response.cookie(key, val, opt)
+  }
 
   // RESFULL-API规范的纯API返回
   send(status = 200, msg = 'success', data = {}) {

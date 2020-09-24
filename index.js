@@ -1,59 +1,56 @@
 /**
  * 控制器基类
- * @authors yutent (yutent@doui.cc)
- * @date    2016-01-02 23:19:16
- *
+ * @author yutent<yutent.io@gmail.com>
+ * @date 2020/09/24 15:45:17
  */
 
-import jwt from '@gm5/jwt'
-
 export default class Controller {
-  constructor({ ctx, req, res }) {
+  // 初始化方法, 取代原先的构造方法
+  __f_i_v_e__(ctx, req, res) {
     this.context = ctx
     this.name = req.app
     this.request = req
     this.response = res
 
-    jwt.expires = ctx.get('session').ttl
-    jwt.secret = ctx.get('jwt')
+    this.jwt = Object.create(null)
+    this.jwt.sign = ctx.$$jwt.sign
 
-    this.jwt = { sign: jwt.sign }
-
-    // smarty.config('path', this.ctx.get('VIEWS'))
-    // smarty.config('ext', this.ctx.get('temp_ext'))
-    // smarty.config('cache', !!this.ctx.get('temp_cache'))
-
-    // this.session = this.ctx.ins('session')
+    this.smarty = ctx.$$smarty
   }
 
-  //定义一个变量，类似于smarty，把该
-  // assign(key, val) {
-  //   key += ''
-  //   if (!key) {
-  //     return
-  //   }
+  // 定义一个模板变量
+  assign(key, val) {
+    if (val === undefined || val === null) {
+      val = ''
+    }
+    key += ''
 
-  //   if (val === undefined || val === null) {
-  //     val = ''
-  //   }
+    if (key && this.smarty) {
+      this.smarty.assign(key, val)
+    }
+  }
 
-  //   smarty.assign(key, val)
-  // }
-
-  //模板渲染, 参数是模板名, 可不带后缀, 默认是 .tpl
-  // render(file, noParse = false) {
-  //   smarty
-  //     .render(file, noParse)
-  //     .then(html => {
-  //       this.response.render(html)
-  //     })
-  //     .catch(err => {
-  //       this.response.error(err)
-  //     })
-  // }
+  // 模板渲染, 参数是模板名, 可不带后缀, 默认是
+  render(file, noParse = false) {
+    if (this.smarty) {
+      this.smarty
+        .render(file, noParse)
+        .then(html => {
+          this.response.render(html)
+        })
+        .catch(err => {
+          this.response.error(err)
+        })
+    }
+  }
 
   checkAuth() {
-    this.jwt.result = jwt.verify(this.request.header('authorized'))
+    var authorization = this.request.header('authorization') || ''
+    this.jwt.result = this.context.$$jwt.verify(authorization)
+    // token校验失败, 自动清除会话
+    if (this.jwt.result === false) {
+      this.context.$$session.clear()
+    }
   }
 
   // cookie读写
@@ -75,7 +72,18 @@ export default class Controller {
     this.response.cookie(key, val, opt)
   }
 
-  // RESFULL-API规范的纯API返回
+  // 会话读写
+  session(key, val) {
+    if (arguments.length < 2) {
+      // 这里返回的是Promise对象
+      return this.context.$$session.get(key)
+    }
+
+    key += ''
+    this.context.$$session.set(key, val)
+  }
+
+  // resfull-api规范的纯API返回
   send(status = 200, msg = 'success', data = {}) {
     if (typeof msg === 'object') {
       data = msg
@@ -87,7 +95,7 @@ export default class Controller {
   //针对框架定制的debug信息输出
   xdebug(err) {
     var msg = err
-    if (this.ctx.get('debug')) {
+    if (this.context.get('debug')) {
       msg = err.message || err
     }
 

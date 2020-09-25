@@ -5,6 +5,9 @@
   "description": "控制器基类。",
   "main": "index.js",
   "author": "yutent",
+  "dependencies": {
+    "crypto.js": "^2.0.2"
+  },
   "keywords": ["fivejs", "controller", "http"],
   "repository": "https://github.com/bytedo/gmf.controller.git",
   "license": "MIT"

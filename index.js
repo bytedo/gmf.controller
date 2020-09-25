@@ -4,6 +4,8 @@
  * @date 2020/09/24 15:45:17
  */
 
+import { sha1 } from 'crypto.js'
+
 export default class Controller {
   // 初始化方法, 取代原先的构造方法
   __f_i_v_e__(ctx, req, res) {
@@ -11,9 +13,6 @@ export default class Controller {
     this.name = req.app
     this.request = req
     this.response = res
-
-    this.jwt = Object.create(null)
-    this.jwt.sign = ctx.$$jwt.sign
 
     this.smarty = ctx.$$smarty
   }
@@ -44,12 +43,24 @@ export default class Controller {
     }
   }
 
-  checkAuth() {
-    var authorization = this.request.header('authorization') || ''
-    this.jwt.result = this.context.$$jwt.verify(authorization)
-    // token校验失败, 自动清除会话
-    if (this.jwt.result === false) {
-      this.context.$$session.clear()
+  get jwt() {
+    var { enabled, ttl } = this.context.get('jwt')
+    var { mixKey } = this.request
+
+    if (enabled) {
+      var tmp = Object.create(null)
+
+      tmp.sign = data => this.context.$$jwt.sign(data, mixKey, ttl)
+
+      tmp.check = _ => {
+        var str = this.request.header('authorization')
+        if (str) {
+          return this.context.$$jwt.verify(str, mixKey)
+        }
+      }
+      return tmp
+    } else {
+      throw Error('Jwt was disabled.')
     }
   }
 
@@ -74,13 +85,19 @@ export default class Controller {
 
   // 会话读写
   session(key, val) {
-    if (arguments.length < 2) {
-      // 这里返回的是Promise对象
-      return this.context.$$session.get(key)
-    }
+    var { enabled } = this.context.get('session')
+    var { ssid } = this.request
+    if (enabled) {
+      if (arguments.length < 2) {
+        // 这里返回的是Promise对象
+        return this.context.$$session.get(ssid, key)
+      }
 
-    key += ''
-    this.context.$$session.set(key, val)
+      key += ''
+      this.context.$$session.set(ssid, key, val)
+    } else {
+      throw Error('Session was disabled.')
+    }
   }
 
   // resfull-api规范的纯API返回

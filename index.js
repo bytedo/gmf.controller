@@ -14,7 +14,7 @@ export default class Controller {
     this.request = req
     this.response = res
 
-    this.smarty = ctx.$$smarty
+    this.views = ctx.$$views
   }
 
   // 定义一个模板变量
@@ -24,41 +24,38 @@ export default class Controller {
     }
     key += ''
 
-    if (key && this.smarty) {
-      this.smarty.assign(key, val)
+    if (key) {
+      this.views.assign(key, val)
     }
   }
 
   // 模板渲染, 参数是模板名, 可不带后缀, 默认是
   render(file, noParse = false) {
-    if (this.smarty) {
-      this.smarty
-        .render(file, noParse)
-        .then(html => {
-          this.response.render(html)
-        })
-        .catch(err => {
-          this.response.error(err)
-        })
-    }
+    this.views
+      .render(file, noParse)
+      .then(html => {
+        this.response.render(html)
+      })
+      .catch(err => {
+        this.response.error(err)
+      })
   }
 
-  get jwt() {
+  // jwt 生成token及校验token
+  jwt(data) {
     var { enabled, ttl } = this.context.get('jwt')
     var { mixKey } = this.request
+    var auth = this.request.header('authorization')
 
     if (enabled) {
-      var tmp = Object.create(null)
-
-      tmp.sign = data => this.context.$$jwt.sign(data, mixKey, ttl)
-
-      tmp.check = _ => {
-        var str = this.request.header('authorization')
-        if (str) {
-          return this.context.$$jwt.verify(str, mixKey)
+      if (data) {
+        return this.context.$$jwt.sign(data, mixKey, ttl)
+      } else {
+        if (auth) {
+          this.jwt.result = this.context.$$jwt.verify(auth, mixKey)
+          return this.jwt.result
         }
       }
-      return tmp
     } else {
       throw Error('Jwt was disabled.')
     }

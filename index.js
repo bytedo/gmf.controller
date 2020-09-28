@@ -4,8 +4,6 @@
  * @date 2020/09/24 15:45:17
  */
 
-import { sha1 } from 'crypto.js'
-
 export default class Controller {
   // 初始化方法, 取代原先的构造方法
   __f_i_v_e__(ctx, req, res) {
@@ -13,8 +11,6 @@ export default class Controller {
     this.name = req.app
     this.request = req
     this.response = res
-
-    this.views = ctx.$$views
   }
 
   // 定义一个模板变量
@@ -25,13 +21,13 @@ export default class Controller {
     key += ''
 
     if (key) {
-      this.views.assign(key, val)
+      this.context.$$views.assign(key, val)
     }
   }
 
   // 模板渲染, 参数是模板名, 可不带后缀, 默认是
   render(file, noParse = false) {
-    this.views
+    this.context.$$views
       .render(file, noParse)
       .then(html => {
         this.response.render(html)
@@ -95,15 +91,6 @@ export default class Controller {
     } else {
       throw Error('Session was disabled.')
     }
-  }
-
-  // resfull-api规范的纯API返回
-  send(status = 200, msg = 'success', data = {}) {
-    if (typeof msg === 'object') {
-      data = msg
-      msg = 'success'
-    }
-    this.response.send(status, msg, data)
   }
 
   //针对框架定制的debug信息输出
